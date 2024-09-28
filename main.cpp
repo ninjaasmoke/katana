@@ -44,8 +44,13 @@ FetchResult fetchURL(const std::string &url)
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
         {
-            result.content = "Error: " + std::string(curl_easy_strerror(res));
-            result.finalUrl = url;
+            // result.content = "Error: " + std::string(curl_easy_strerror(res));
+            // result.finalUrl = url;
+
+            // use a search engine and just search the given url (it is most probably a search query)
+            char *escapedQuery = curl_easy_escape(curl, url.c_str(), url.length());
+            result = fetchURL("https://www.google.com/search?q=" + std::string(escapedQuery));
+            curl_free(escapedQuery);
         }
         else
         {
@@ -101,7 +106,6 @@ int main(int argc, char *argv[])
         "border-radius: 2px;"
         "height: 2px;");
     loadingBarProgress->setFixedWidth(50);
-
 
     QTextEdit *resultArea = new QTextEdit();
     resultArea->setReadOnly(true);
