@@ -26,10 +26,23 @@ std::string fetchURL(const std::string &url)
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        // Enable automatic redirection
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        // Optional: Set a maximum number of redirects to follow
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
+
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
         {
             readBuffer = "Error: " + std::string(curl_easy_strerror(res));
+        }
+        else
+        {
+            // Optional: Get the final URL after redirects
+            char *final_url;
+            curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &final_url);
         }
         curl_easy_cleanup(curl);
     }
@@ -78,13 +91,13 @@ int main(int argc, char *argv[])
     QObject::connect(fetchButton,
                      &QPushButton::clicked, [&]()
                      {
-        QString url = urlInput->text();
-        if (url.isEmpty()) {
-            QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
-            return;
-        }
-        std::string content = fetchURL(url.toStdString());
-        resultArea->setText(QString::fromStdString(content)); });
+    QString url = urlInput->text();
+    if (url.isEmpty()) {
+        QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
+        return;
+    }
+    std::string content = fetchURL(url.toStdString());
+    resultArea->setText(QString::fromStdString(content)); });
 
     window.show();
 
