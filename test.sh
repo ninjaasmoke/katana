@@ -1,1 +1,1 @@
-cmake --build . --target KatanaBrowser -- -j 4 && ./KatanaBrowser
+cmake --build . --target KatanaBrowser -- -j 4 && ./KatanaBrowser.app/Contents/MacOS/KatanaBrowser
