@@ -28,6 +28,42 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
     return size * nmemb;
 }
 
+const QString defaultHtml = R"(
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+                }
+                .container {
+                    text-align: center;
+                }
+                h1 {
+                    font-size: 48px;
+                    color: #333;
+                }
+                p {
+                    font-size: 24px;
+                    color: #666;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Welcome to Katana Browser</h1>
+                <p>a boring, no nonsense browser</p>
+            </div>
+        </body>
+        </html>
+    )";
+
 FetchResult fetchURL(const std::string &url)
 {
     CURL *curl;
@@ -108,13 +144,15 @@ int main(int argc, char *argv[])
 
     QObject::connect(urlInput, &QLineEdit::returnPressed, fetchButton, &QPushButton::click);
 
-    hLayout->setContentsMargins(15, 0, 15, 0);
+    hLayout->setContentsMargins(10, 10, 10, 10);
 
-    webView->setStyleSheet("background-color: palette(window);");
+    webView->setHtml(defaultHtml);
+    webView->setStyleSheet("margin: 0; padding: 0;");
     layout->addWidget(webView);
 
-    layout->setContentsMargins(0, 15, 0, 15);
-    layout->setSpacing(10);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setMargin(0);
+    layout->setSpacing(0);
 
     QObject::connect(fetchButton, &QPushButton::clicked, [&]()
                      {
