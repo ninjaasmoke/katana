@@ -1,0 +1,54 @@
+# Ignore build directories
+/build/
+/out/
+/bin/
+/lib/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+
+# Ignore generated files by CMake and IDEs
+compile_commands.json
+CMakeScripts/
+Testing/
+CTestTestfile.cmake
+.vscode/
+
+# Ignore executables and libraries
+*.exe
+*.out
+*.app
+*.log
+*.obj
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Ignore Qt Creator files
+*.pro.user
+*.qmake.stash
+*.pro.user.*
+
+# Ignore Visual Studio files
+*.vcxproj*
+*.sln
+*.vcxproj.filters
+*.vcxproj.user
+
+# Ignore CLion project files
+.idea/
+*.iml
+cmake-build-*/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore backup or temporary files
+*~
+*.swp
+*.tmp
+*.bak
+*.log
