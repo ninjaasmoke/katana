@@ -47,10 +47,6 @@ FetchResult fetchURL(const std::string &url)
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
         {
-            // result.content = "Error: " + std::string(curl_easy_strerror(res));
-            // result.finalUrl = url;
-
-            // use a search engine and just search the given url (it is most probably a search query)
             char *escapedQuery = curl_easy_escape(curl, url.c_str(), url.length());
             result = fetchURL("https://www.google.com/search?q=" + std::string(escapedQuery));
             curl_free(escapedQuery);
@@ -80,13 +76,24 @@ int main(int argc, char *argv[])
 
     QHBoxLayout *hLayout = new QHBoxLayout();
 
+    QPushButton *backButton = new QPushButton("<");
+    backButton->setStyleSheet("font-size: 14px; background-color: transparent; color: black; margin-right: 18px; margin-left: 10px;");
+    backButton->setCursor(Qt::PointingHandCursor);
+    hLayout->addWidget(backButton);
+
+    QPushButton *forwardButton = new QPushButton(">");
+    forwardButton->setStyleSheet("font-size: 14px; background-color: transparent; color: black; margin-right: 10px;");
+    forwardButton->setCursor(Qt::PointingHandCursor);
+    hLayout->addWidget(forwardButton);
+
     QLineEdit *urlInput = new QLineEdit();
     urlInput->setPlaceholderText("Search or type a URL");
     urlInput->setStyleSheet("padding: 10px; font-size: 14px; border-radius: 5px;");
     hLayout->addWidget(urlInput);
 
     QPushButton *fetchButton = new QPushButton("Go");
-    fetchButton->setStyleSheet("font-size: 14px; padding: 10px; background-color: grey; color: white; border-radius: 5px;");
+    fetchButton->setStyleSheet("font-size: 14px; padding: 10px; background-color: #333; color: white; border-radius: 5px;");
+    fetchButton->setCursor(Qt::PointingHandCursor);
     hLayout->addWidget(fetchButton);
 
     QObject::connect(urlInput, &QLineEdit::returnPressed, fetchButton, &QPushButton::click);
@@ -96,7 +103,6 @@ int main(int argc, char *argv[])
 
     layout->addLayout(hLayout);
 
-    // WebEngineView to display HTML/CSS
     QWebEngineView *webView = new QWebEngineView();
     webView->setStyleSheet("background-color: palette(window);");
     layout->addWidget(webView);
@@ -115,7 +121,6 @@ int main(int argc, char *argv[])
     fetchButton->setEnabled(false);
     urlInput->setEnabled(false);
 
-    // Perform fetching using QtConcurrent::run to handle threads efficiently
     QtConcurrent::run([url, &webView, &urlInput, &fetchButton]() {
         FetchResult result = fetchURL(url.toStdString());
 
@@ -128,6 +133,9 @@ int main(int argc, char *argv[])
             urlInput->setEnabled(true);
         });
     }); });
+
+    QObject::connect(backButton, &QPushButton::clicked, webView, &QWebEngineView::back);
+    QObject::connect(forwardButton, &QPushButton::clicked, webView, &QWebEngineView::forward);
 
     window.show();
 
