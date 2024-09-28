@@ -8,17 +8,23 @@
 #include <curl/curl.h>
 #include <string>
 
+struct FetchResult {
+    std::string content;
+    std::string finalUrl;
+};
+
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
     return size * nmemb;
 }
 
-std::string fetchURL(const std::string &url)
+FetchResult fetchURL(const std::string &url)
 {
     CURL *curl;
     CURLcode res;
     std::string readBuffer;
+    FetchResult result;
 
     curl = curl_easy_init();
     if (curl)
@@ -36,17 +42,21 @@ std::string fetchURL(const std::string &url)
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
         {
-            readBuffer = "Error: " + std::string(curl_easy_strerror(res));
+            result.content = "Error: " + std::string(curl_easy_strerror(res));
+            result.finalUrl = url;
         }
         else
         {
-            // Optional: Get the final URL after redirects
+            result.content = readBuffer;
+            
+            // Get the final URL after redirects
             char *final_url;
             curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &final_url);
+            result.finalUrl = final_url ? final_url : url;
         }
         curl_easy_cleanup(curl);
     }
-    return readBuffer;
+    return result;
 }
 
 int main(int argc, char *argv[])
@@ -91,13 +101,15 @@ int main(int argc, char *argv[])
     QObject::connect(fetchButton,
                      &QPushButton::clicked, [&]()
                      {
-    QString url = urlInput->text();
-    if (url.isEmpty()) {
-        QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
-        return;
-    }
-    std::string content = fetchURL(url.toStdString());
-    resultArea->setText(QString::fromStdString(content)); });
+        QString url = urlInput->text();
+        if (url.isEmpty()) {
+            QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
+            return;
+        }
+        FetchResult result = fetchURL(url.toStdString());
+        resultArea->setText(QString::fromStdString(result.content));
+        urlInput->setText(QString::fromStdString(result.finalUrl));
+    });
 
     window.show();
 
