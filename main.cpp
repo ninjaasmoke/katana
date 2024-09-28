@@ -12,6 +12,8 @@
 #include <curl/curl.h>
 #include <string>
 #include <thread>
+#include <QThread>
+#include <QtConcurrent/QtConcurrent>
 
 struct FetchResult
 {
@@ -104,29 +106,28 @@ int main(int argc, char *argv[])
 
     QObject::connect(fetchButton, &QPushButton::clicked, [&]()
                      {
-        QString url = urlInput->text();
-        if (url.isEmpty()) {
-            QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
-            return;
-        }
-        fetchButton->setEnabled(false);
-        urlInput->setEnabled(false);
+    QString url = urlInput->text();
+    if (url.isEmpty()) {
+        QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
+        return;
+    }
 
-        // Perform fetching of the page on a separate thread
-        std::thread([url, &webView, &urlInput, &fetchButton]() {
-            FetchResult result = fetchURL(url.toStdString());
+    fetchButton->setEnabled(false);
+    urlInput->setEnabled(false);
 
-            QMetaObject::invokeMethod(qApp, [&, result]() {
-                QUrl finalUrl(QString::fromStdString(result.finalUrl));
+    // Perform fetching using QtConcurrent::run to handle threads efficiently
+    QtConcurrent::run([url, &webView, &urlInput, &fetchButton]() {
+        FetchResult result = fetchURL(url.toStdString());
 
-                // Load the content in the QWebEngineView
-                webView->setHtml(QString::fromStdString(result.content), finalUrl);
+        QMetaObject::invokeMethod(qApp, [&, result]() {
+            QUrl finalUrl(QString::fromStdString(result.finalUrl));
+            webView->setHtml(QString::fromStdString(result.content), finalUrl);
 
-                urlInput->setText(QString::fromStdString(result.finalUrl));
-                fetchButton->setEnabled(true);
-                urlInput->setEnabled(true);
-            });
-        }).detach(); });
+            urlInput->setText(QString::fromStdString(result.finalUrl));
+            fetchButton->setEnabled(true);
+            urlInput->setEnabled(true);
+        });
+    }); });
 
     window.show();
 
