@@ -52,3 +52,5 @@ cmake-build-*/
 *.tmp
 *.bak
 *.log
+
+KatanaBrowser
