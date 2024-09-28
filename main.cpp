@@ -34,7 +34,6 @@ const QString defaultHtml = R"(
         <head>
             <style>
                 body {
-                    font-family: Arial, sans-serif;
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -141,6 +140,12 @@ int main(int argc, char *argv[])
     fetchButton->setStyleSheet("font-size: 14px; padding: 10px; background-color: #333; color: white; border-radius: 5px;");
     fetchButton->setCursor(Qt::PointingHandCursor);
     hLayout->addWidget(fetchButton);
+
+    // new tab button
+    QPushButton *newTabButton = new QPushButton("+");
+    newTabButton->setStyleSheet("font-size: 14px; padding: 10px; background-color: #333; color: white; border-radius: 5px;");
+    newTabButton->setCursor(Qt::PointingHandCursor);
+    hLayout->addWidget(newTabButton);
 
     QObject::connect(urlInput, &QLineEdit::returnPressed, fetchButton, &QPushButton::click);
 
