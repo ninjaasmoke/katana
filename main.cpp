@@ -34,11 +34,14 @@ const QString defaultHtml = R"(
         <head>
             <style>
                 body {
+                    font-family: Times New Roman', Times, serif;
                     display: flex;
+                    flex-direction: column;
                     justify-content: center;
                     align-items: center;
                     height: 100vh;
                     margin: 0;
+                    margin-top: 120px;
                     background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
                 }
                 .container {
@@ -56,7 +59,7 @@ const QString defaultHtml = R"(
         </head>
         <body>
             <div class="container">
-                <h1>Welcome to Katana Browser</h1>
+                <h1>Welcome to Katana</h1>
                 <p>a boring, no nonsense browser</p>
             </div>
         </body>
