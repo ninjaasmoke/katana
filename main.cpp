@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
     QWidget window;
     window.setWindowTitle("Katana Browser");
-    window.resize(900, 700);
+    window.resize(1200, 720);
     QWebEngineView *webView = new QWebEngineView();
 
     QWebEngineSettings *settings = webView->settings();
@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
 
     QVBoxLayout *layout = new QVBoxLayout(&window);
     QHBoxLayout *hLayout = new QHBoxLayout();
+    hLayout->setMargin(0);
+    hLayout->setSpacing(10);
 
     QPushButton *backButton = new QPushButton("<");
     backButton->setStyleSheet("font-size: 14px; background-color: transparent; color: black; margin-right: 18px; margin-left: 10px;");
@@ -106,10 +108,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(urlInput, &QLineEdit::returnPressed, fetchButton, &QPushButton::click);
 
-    hLayout->setSpacing(10);
     hLayout->setContentsMargins(15, 0, 15, 0);
-
-    layout->addLayout(hLayout);
 
     webView->setStyleSheet("background-color: palette(window);");
     layout->addWidget(webView);
@@ -143,6 +142,8 @@ int main(int argc, char *argv[])
 
     QObject::connect(backButton, &QPushButton::clicked, webView, &QWebEngineView::back);
     QObject::connect(forwardButton, &QPushButton::clicked, webView, &QWebEngineView::forward);
+
+    layout->addLayout(hLayout);
 
     window.show();
 
