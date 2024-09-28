@@ -4,10 +4,11 @@
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QTextEdit>
+#include <QWebEngineView>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QTimer>
+#include <QUrl>
 #include <curl/curl.h>
 #include <string>
 #include <thread>
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
     QHBoxLayout *hLayout = new QHBoxLayout();
 
     QLineEdit *urlInput = new QLineEdit();
-    urlInput->setPlaceholderText("type a URL here");
+    urlInput->setPlaceholderText("Search or type a URL");
     urlInput->setStyleSheet("padding: 10px; font-size: 14px; border-radius: 5px;");
     hLayout->addWidget(urlInput);
 
@@ -93,24 +94,10 @@ int main(int argc, char *argv[])
 
     layout->addLayout(hLayout);
 
-    QWidget *loadingBarBackground = new QWidget();
-    loadingBarBackground->setStyleSheet(
-        "background-color: red;"
-        "border-radius: 2px;"
-        "height: 2px;");
-    layout->addWidget(loadingBarBackground);
-
-    QWidget *loadingBarProgress = new QWidget(loadingBarBackground);
-    loadingBarProgress->setStyleSheet(
-        "background-color: #05B8CC;"
-        "border-radius: 2px;"
-        "height: 2px;");
-    loadingBarProgress->setFixedWidth(50);
-
-    QTextEdit *resultArea = new QTextEdit();
-    resultArea->setReadOnly(true);
-    resultArea->setStyleSheet("font-size: 14px;");
-    layout->addWidget(resultArea);
+    // WebEngineView to display HTML/CSS
+    QWebEngineView *webView = new QWebEngineView();
+    webView->setStyleSheet("background-color: palette(window);");
+    layout->addWidget(webView);
 
     layout->setContentsMargins(0, 15, 0, 15);
     layout->setSpacing(10);
@@ -122,18 +109,20 @@ int main(int argc, char *argv[])
             QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
             return;
         }
-
-        loadingBarBackground->show();
         fetchButton->setEnabled(false);
         urlInput->setEnabled(false);
 
-        std::thread([url, &resultArea, &urlInput, &loadingBarBackground, &fetchButton]() {
+        // Perform fetching of the page on a separate thread
+        std::thread([url, &webView, &urlInput, &fetchButton]() {
             FetchResult result = fetchURL(url.toStdString());
-            
+
             QMetaObject::invokeMethod(qApp, [&, result]() {
-                resultArea->setText(QString::fromStdString(result.content));
+                QUrl finalUrl(QString::fromStdString(result.finalUrl));
+
+                // Load the content in the QWebEngineView
+                webView->setHtml(QString::fromStdString(result.content), finalUrl);
+
                 urlInput->setText(QString::fromStdString(result.finalUrl));
-                loadingBarBackground->hide();
                 fetchButton->setEnabled(true);
                 urlInput->setEnabled(true);
             });
