@@ -1,14 +1,19 @@
 #include <QApplication>
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QMessageBox>
+#include <QProgressBar>
+#include <QTimer>
 #include <curl/curl.h>
 #include <string>
+#include <thread>
 
-struct FetchResult {
+struct FetchResult
+{
     std::string content;
     std::string finalUrl;
 };
@@ -33,10 +38,7 @@ FetchResult fetchURL(const std::string &url)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
-        // Enable automatic redirection
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-        // Optional: Set a maximum number of redirects to follow
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
 
         res = curl_easy_perform(curl);
@@ -48,8 +50,7 @@ FetchResult fetchURL(const std::string &url)
         else
         {
             result.content = readBuffer;
-            
-            // Get the final URL after redirects
+
             char *final_url;
             curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &final_url);
             result.finalUrl = final_url ? final_url : url;
@@ -73,12 +74,10 @@ int main(int argc, char *argv[])
 
     QLineEdit *urlInput = new QLineEdit();
     urlInput->setPlaceholderText("type a URL here");
-
     urlInput->setStyleSheet("padding: 10px; font-size: 14px; border-radius: 5px;");
     hLayout->addWidget(urlInput);
 
     QPushButton *fetchButton = new QPushButton("Go");
-
     fetchButton->setStyleSheet("font-size: 14px; padding: 10px; background-color: grey; color: white; border-radius: 5px;");
     hLayout->addWidget(fetchButton);
 
@@ -89,27 +88,52 @@ int main(int argc, char *argv[])
 
     layout->addLayout(hLayout);
 
+    QWidget *loadingBarBackground = new QWidget();
+    loadingBarBackground->setStyleSheet(
+        "background-color: red;"
+        "border-radius: 2px;"
+        "height: 2px;");
+    layout->addWidget(loadingBarBackground);
+
+    QWidget *loadingBarProgress = new QWidget(loadingBarBackground);
+    loadingBarProgress->setStyleSheet(
+        "background-color: #05B8CC;"
+        "border-radius: 2px;"
+        "height: 2px;");
+    loadingBarProgress->setFixedWidth(50);
+
+
     QTextEdit *resultArea = new QTextEdit();
     resultArea->setReadOnly(true);
-
     resultArea->setStyleSheet("font-size: 14px;");
     layout->addWidget(resultArea);
 
     layout->setContentsMargins(0, 15, 0, 15);
     layout->setSpacing(10);
 
-    QObject::connect(fetchButton,
-                     &QPushButton::clicked, [&]()
+    QObject::connect(fetchButton, &QPushButton::clicked, [&]()
                      {
         QString url = urlInput->text();
         if (url.isEmpty()) {
             QMessageBox::warning(&window, "Error", "Please enter a valid URL.");
             return;
         }
-        FetchResult result = fetchURL(url.toStdString());
-        resultArea->setText(QString::fromStdString(result.content));
-        urlInput->setText(QString::fromStdString(result.finalUrl));
-    });
+
+        loadingBarBackground->show();
+        fetchButton->setEnabled(false);
+        urlInput->setEnabled(false);
+
+        std::thread([url, &resultArea, &urlInput, &loadingBarBackground, &fetchButton]() {
+            FetchResult result = fetchURL(url.toStdString());
+            
+            QMetaObject::invokeMethod(qApp, [&, result]() {
+                resultArea->setText(QString::fromStdString(result.content));
+                urlInput->setText(QString::fromStdString(result.finalUrl));
+                loadingBarBackground->hide();
+                fetchButton->setEnabled(true);
+                urlInput->setEnabled(true);
+            });
+        }).detach(); });
 
     window.show();
 
