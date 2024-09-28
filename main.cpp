@@ -14,6 +14,7 @@
 #include <thread>
 #include <QThread>
 #include <QtConcurrent/QtConcurrent>
+#include <QWebEngineSettings>
 
 struct FetchResult
 {
@@ -55,6 +56,8 @@ FetchResult fetchURL(const std::string &url)
         {
             result.content = readBuffer;
 
+            qDebug() << "Fetched content size:" << result.content.size();
+
             char *final_url;
             curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &final_url);
             result.finalUrl = final_url ? final_url : url;
@@ -71,9 +74,14 @@ int main(int argc, char *argv[])
     QWidget window;
     window.setWindowTitle("Katana Browser");
     window.resize(900, 700);
+    QWebEngineView *webView = new QWebEngineView();
+
+    QWebEngineSettings *settings = webView->settings();
+    settings->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
+    settings->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
+    settings->setAttribute(QWebEngineSettings::WebGLEnabled, true);
 
     QVBoxLayout *layout = new QVBoxLayout(&window);
-
     QHBoxLayout *hLayout = new QHBoxLayout();
 
     QPushButton *backButton = new QPushButton("<");
@@ -103,7 +111,6 @@ int main(int argc, char *argv[])
 
     layout->addLayout(hLayout);
 
-    QWebEngineView *webView = new QWebEngineView();
     webView->setStyleSheet("background-color: palette(window);");
     layout->addWidget(webView);
 
